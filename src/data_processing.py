@@ -1,4 +1,5 @@
 import pandas as pd
+from src.polls import *
 
 
 class DataProcessor:
@@ -47,3 +48,19 @@ class DataProcessor:
             drop_cols.append(col)
         df = df.drop(columns=drop_cols)
         return df
+    
+    def get_nat_polls(self):
+        poll_avgs = []
+        for url, col_dict in [
+            (url_05, col_dict05),
+            (url_10, col_dict10),
+            (url_15, col_dict15),
+            (url_17, col_dict17),
+            (url_19, col_dict19),
+            (url_24, col_dict24),
+        ]:
+            poll_avgs.append(get_weighted_poll_avg(url, col_dict))
+        return poll_avgs
+
+    def get_polling_features(self):
+        return self.get_nat_polls() #TBC
