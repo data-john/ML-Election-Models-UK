@@ -132,6 +132,7 @@ def wiki_polls_preprocessing(df, col_names = {
     for col in pc_cols:
         df.drop(df[df[col]==9.99].index,axis=0,inplace=True)
     df["Total"] = df[pc_cols].sum(axis=1)
+    df.rename(columns={v:k for k,v in col_names.items()}, inplace=True)
     return df.copy()
 
 def fetch_html(url):
@@ -171,10 +172,10 @@ def get_latest_polls_dict(n=3):
 
 def get_weighted_poll_avg(url, col_dict):
     sdf = get_latest_polls_from_html(url,col_dict=col_dict, n=3)
-    sdf_m = sdf[col_dict.values()].mean()
+    sdf_m = sdf[col_dict.keys()].mean()
 
     ldf = get_latest_polls_from_html(url,col_dict=col_dict, n=10)
-    ldf_m = ldf[col_dict.values()].mean()
+    ldf_m = ldf[col_dict.keys()].mean()
     return pd.concat([sdf_m,ldf_m],axis=1).transpose().mean()
 
 def polls_have_changed(last_polls_path="UKGE/outputs/lastnatpolls.csv"):
@@ -191,19 +192,19 @@ def polls_have_changed(last_polls_path="UKGE/outputs/lastnatpolls.csv"):
 
 
 
-def test():
-    print("2024 polls:")
-    print(get_weighted_poll_avg(url_24, col_dict=col_dict24))
-    print("2019 polls:")
-    print(get_weighted_poll_avg(url_19, col_dict=col_dict19))
-    print("2017 polls:")
-    print(get_weighted_poll_avg(url_17, col_dict=col_dict17))
-    print("2015 polls:")
-    print(get_weighted_poll_avg(url_15, col_dict=col_dict15))
-    print("2010 polls:")
-    print(get_weighted_poll_avg(url_10, col_dict=col_dict10))
-    print("2005 polls:")
-    print(get_weighted_poll_avg(url_05, col_dict=col_dict05))
+# def test():
+#     print("2024 polls:")
+#     print(get_weighted_poll_avg(url_24, col_dict=col_dict24))
+#     print("2019 polls:")
+#     print(get_weighted_poll_avg(url_19, col_dict=col_dict19))
+#     print("2017 polls:")
+#     print(get_weighted_poll_avg(url_17, col_dict=col_dict17))
+#     print("2015 polls:")
+#     print(get_weighted_poll_avg(url_15, col_dict=col_dict15))
+#     print("2010 polls:")
+#     print(get_weighted_poll_avg(url_10, col_dict=col_dict10))
+#     print("2005 polls:")
+#     print(get_weighted_poll_avg(url_05, col_dict=col_dict05))
 
 if __name__ == "__main__":
-    test()
+    pass

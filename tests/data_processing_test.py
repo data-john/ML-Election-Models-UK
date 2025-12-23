@@ -18,9 +18,11 @@ def test_get_consituency_features():
 def test_get_nat_polls():
     processor = DataProcessor()
     poll_avgs = processor.get_nat_polls()
-    assert len(poll_avgs) == 6, "There should be 6 sets of poll averages."
+    logging.warning(poll_avgs.shape)
+    logging.warning(poll_avgs.columns)
+    logging.warning(poll_avgs.index)
+    assert len(poll_avgs.columns) == 5, "There should be 5 sets of poll averages."
     logging.warning(poll_avgs)
-    # for poll_avg in poll_avgs: ### Consider updating nat_polls output to have consistent party names
-    #     assert all(
-    #         party in poll_avg.columns for party in ["Con", "Lab", "Lib Dem", "SNP", "Green", "UKIP", "Others"]
-    #     ), "Poll averages should contain all specified parties."
+    assert all(
+            party in poll_avgs.index for party in ["Con", "Lab", "Lib", "Nat", "Grn", "Ref", "Oth"]
+        ), "Poll averages should contain all specified parties."

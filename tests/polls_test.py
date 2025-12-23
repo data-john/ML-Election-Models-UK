@@ -5,5 +5,5 @@ def test_get_weighted_poll_avg():
     col_dict = col_dict19
     poll_avg = get_weighted_poll_avg(url, col_dict)
     assert len(poll_avg) == 7, "Poll average should contain 7 parties."
-    for party in col_dict.values():
+    for party in col_dict.keys():
         assert party in poll_avg.index, f"{party} should be in the poll average index."
