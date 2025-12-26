@@ -26,3 +26,10 @@ def test_get_nat_polls():
     assert all(
             party in poll_avgs.index for party in ["Con", "Lab", "Lib", "Nat", "Grn", "Ref", "Oth"]
         ), "Poll averages should contain all specified parties."
+
+def test_get_features_and_labels():
+    processor = DataProcessor()
+    df_features, df_labels = processor.get_features_and_labels()
+    assert not df_features.empty, "Features DataFrame should not be empty."
+    assert not df_labels.empty, "Labels DataFrame should not be empty."
+    assert df_features.shape[0] == df_labels.shape[0], "Features and labels should have the same number of rows."
