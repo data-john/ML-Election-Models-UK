@@ -3,6 +3,9 @@ from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score
+import torch
+from torch import nn
+from torch import optim
 
 import pandas as pd
 
@@ -106,14 +109,69 @@ class ModelsEngine:
         print(f"Test Loss: {test_loss}")
         print(f"R^2 Score: {r2_score(y_test, model.predict(X_test))}")
 
-        
+    def define_pytorch_model(self):
+        class MultiRegressionNN(nn.Module):
+            def __init__(self, input_dim, output_dim):
+                super(MultiRegressionNN, self).__init__()
+
+                self.net = nn.Sequential(
+                    nn.Linear(input_dim, 128),
+                    nn.ReLU(),
+                    nn.Linear(128, 64),
+                    nn.ReLU(),
+                    nn.Linear(64, output_dim)
+                )
+
+            def forward(self, x):
+                return self.net(x)
+        return MultiRegressionNN(input_dim=33, output_dim=6)
+    
+    def train_pytorch_model(self, model, features, labels):
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        X = torch.tensor(features.values, dtype=torch.float32).to(device)
+        y = torch.tensor(labels.values, dtype=torch.float32).to(device)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=42)
+
+        criterion = nn.MSELoss()
+        optimizer = optim.Adam(model.parameters(), lr=1e-3)
+
+        train_dataset = torch.utils.data.TensorDataset(X_train, y_train)
+        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=32, shuffle=True)
+        val_dataset = torch.utils.data.TensorDataset(X_val, y_val)
+        val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=32, shuffle=False)
+        num_epochs = 200
+        for epoch in range(num_epochs):
+            model.train()
+            for xb, yb in train_loader:
+                optimizer.zero_grad()
+                preds = model(xb)
+                loss = criterion(preds, yb)
+                loss.backward()
+                optimizer.step()
+
+            if epoch % 10 == 0:
+                val_loss = criterion(model(X_val), y_val)
+                print(f"Epoch {epoch}, Loss: {loss.item():.4f}, Val Loss: {val_loss.item():.4f}")
+
+        model.eval()
+        with torch.no_grad():
+            predictions = model(X_test)
+            test_loss = criterion(predictions, y_test)
+            print(f'Test Loss: {test_loss.item():.4f}')
+            print(f'R^2 Score: {r2_score(y_test.cpu(), predictions.cpu()):.4f}')
+            print(f'MAE: {mean_absolute_error(y_test.cpu(), predictions.cpu()):.4f}')
+            
         
 
 if __name__ == "__main__":
     engine = ModelsEngine()
     tf_model = engine.define_tensorflow_model()
+    pt_model = engine.define_pytorch_model()
     features, labels = engine.data_processor.load_features_and_labels()
     processed_features = engine.preprocessor.preprocess_features(features)
     processed_labels = engine.preprocessor.preprocess_labels(labels)
     engine.train_tensorflow_model(tf_model, processed_features, processed_labels)
     engine.run_modeling_pipeline()
+    engine.train_pytorch_model(pt_model, processed_features, processed_labels)
+    
